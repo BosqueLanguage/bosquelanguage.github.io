@@ -1,7 +1,40 @@
-remote_theme: pages-themes/slate@v0.2.0
-plugins:
-- jekyll-remote-theme # add this line to the plugins list if you already have one
+theme: minima
 
 title: Bosque Language Blog
-description: Thoughts on the Bosque Project that go beyond a simple github discussion.
+author: Mark Marron
+email: marron@cs.uky.edu
+#url: maybe later
 
+timezone: Etc/UTC # GitHub uses UTC. This is to force dev environment to match
+future: false # GitHub Pages will publish future posts if this isn't set to false
+
+description: >
+  A blog for musings on Bosque.
+
+# Minima variables
+twitter_username:  @BosqueLanguage
+github_username:   BosqueLanguage
+
+show_excerpts: true
+
+# Used by simple links page
+social-links:
+  GitHub:          https://github.com/BosqueLanguage
+  Twitter:         https://x.com/BosqueLanguage
+
+# plugin: jekyll-titles-from-headings
+titles_from_headings:
+  strip_title: true
+
+header_pages:
+  - papers.html
+  - talks.html
+  - resources.md
+
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+code_block_max_height: 500px
+
+home_post_limit: 5

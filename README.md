@@ -1,3 +1,9 @@
+#The Bosque Programming Language and Platform Blog
+
+This blog is intended as a place to share thoughts and ideas about the Bosque programming language and platform. Some of these are foundational concepts that shape the  project. Others are just fun things that came up and seem worth sharing.
+
+
+<!--
 # gh-pages-minima-starter
 
 This is a template and some instructions for running Github Pages with the [`minima` theme][minima]. This repo has what I consider the minimum pieces for a personal blog using [Jekyll][jk] and [Github Pages][gh-site]:
@@ -24,3 +30,4 @@ Enjoy!!
 [gh]: https://help.github.com/en/github/working-with-github-pages
 [gh-settings]: https://help.github.com/en/github/working-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
 [dev]: https://jsanz.github.io/gh-pages-minima-starter/2020/04/17/local-env.html
+-->

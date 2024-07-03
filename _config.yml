@@ -1,16 +1,15 @@
-title: My blog
-description: My very nice blog
-author: "Jorge Sanz"
+title: Bosque Language Blog
+description: Blog for the Bosque language and 
+author: "Mark Marron"
 
 theme: minima
 
 base_url: /gh-pages-minima-starter
-repository: jsanz/gh-pages-minima-starter
+repository: https://github.com/BosqueLanguage/bosquelanguage.github.io
 
 # Minima social links
-github_username: jsanz
-linkedin_username: jsanz
-rss: rss
+github_username: BosqueLanguage
+twitter_username: BosqueLanguage
 
 # Minima: show excerpts in the frontpage
 show_excerpts: true

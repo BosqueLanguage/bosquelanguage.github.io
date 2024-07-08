@@ -4,6 +4,9 @@ layout: page
 title: About Bosque
 ---
 
-More details about me on this page with links to my social media profiles and so on.
+# Links:
 
-![](https://www.jorgesanz.net/assets/imgs/me/jsanz_small4.png)
+Github: [BosqueLanguage](https://github.com/BosqueLanguage)
+
+Twitter: [@BosqueLanguage](https://twitter.com/BosqueLanguage)
+

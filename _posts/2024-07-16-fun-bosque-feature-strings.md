@@ -11,11 +11,39 @@ There are a number of reasons for this, some of which we defer to later, but at 
 
 Bosque takes the view that different uses really do require different tradeoffs here!
 
-## Unicode Strings -- \rocket cactus sparkles emoji and more
-For the default `String` type Bosque defaults to `utf8` encoded strings. These cover the full unicode character set and are the defacto standard for intercommunication and storage. 
+## Unicode Strings -- 🌵🚀✨ and more
+For the default `String` type Bosque defaults to `utf8` encoded strings. These cover the full unicode character set and are the defacto standard for intercommunication and storage. This allows for the full range of emoji, international characters, and more to be used in strings. 
 
+In Bosque (unicode) string literals are denoted with the `"..."` marks. Special characters, or hex encoded char values, are escaped using a HTML inspired syntax of `%...;`. The value in the escape can be a hex value, say `%x1F335;` for the cactus emoji 🌵, a name of a special char like `%n;` or `%slash;` for the newline and / respectively, or the special `%%;` and `%;` for the % and " respectively. Examples of strings include:
+```
+"Hello, World!"       -> Hello World!
+"🌵%x1F335;"          -> 🌵🌵
+"a %; %dollar; %x59;" -> a " $ Y
+```
 
-## CStrings -- [ -~\t\n]* and thats it!
-However, for many use cases this is overkill. Uses of strings for (mostly internal) data manipulation and processing can be well served by a simple ASCII string model. So, Bosque provides a simple `CString` type that consists of the _printable_ subset of `ascii` characters -- no embedded nulls, backspaces, bells, etc. 
+In many situations we need multi-line literals and often times, for legibility, it is nice to be able to indent them to match the surrounding code. Bosque supports both of these, allowing literal newlines in any string literal and using a `\` as the first character of a line to indicate indentation only spaces in a newline. For example all of the following are equivalent and represent the same string value:
+```
+"Hello,%n; World!"
+
+"Hello,
+ World!"
+
+        "Hello, 
+       \ World!"
+```
+
+As we will hear many times in this blog -- correctness and reliability are key goals of Bosque. So, the string type provides aggressive validation for string literal (and other string inputs). Any string value is checked for valid `uft8` encoding and any truncated multi-byte values are compile errors (for literals) or input errors (for runtime values). Literals are also checked for unterminated escape sequences, bad escape names, and invalid numeric escapes. This is a simple but powerful tool to catch many typos or other small mistakes in literal strings in the code.
+```
+"Hello, %x1F335"         -> error missing ;
+"Hello, %newline;"       -> invalid name (should be %n;)
+"Hello, %x100000000000;" -> invalid hex character
+"Hello, %x1G335;"        -> error G is not a valid hex character
+```
+
+## CStrings -- `[ -~\t\n]*` and thats it!
+For many use cases the full Unicode character space is not needed and having to worry about multi-byte characters, normalization, combining marks, visually similar glyphs, etc. can be a burden and a source of bugs. These uses of strings for (mostly internal) data manipulation and processing can be well served by a simple ASCII string model. So, Bosque provides a simple `CString` type that consists of the _printable_ subset of `ascii` characters -- no embedded nulls, backspaces, bells, etc. -- which, with the disappearance of the teletype, now serve mainly as a a source of trivia and bugs!
 
 ## String APIs with Soft-Edges
+
+## Regex support, Templates, and ByteBuffers
+...

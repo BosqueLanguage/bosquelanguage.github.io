@@ -4,7 +4,7 @@ date: 2024-07-08
 layout: post
 ---
 
-To start things off I thought it would be good to share a [paper](https://dl.acm.org/doi/10.1145/3622758.3622895) and a talk that I gave on it at the Onward! conference last year. The paper is titled "Toward Programming Languages for Reasoning: Humans, Symbolic Systems, and AI Agents" and it is a reflection on the role of programming languages in enabling reasoning in humans, symbolic systems, and AI agents. This paper and talk outline some of the core ideas that I have been exploring in the Bosque project and that form the basis of the production focused version of the system that I am working on now.
+To start things off I thought it would be good to share a [paper](https://dl.acm.org/doi/10.1145/3622758.3622895) ([arxiv version](http://www.arxiv.org/abs/2407.06356)) and a talk that I gave on it at the Onward! conference last year. The paper is titled "Toward Programming Languages for Reasoning: Humans, Symbolic Systems, and AI Agents" and it is a reflection on the role of programming languages in enabling reasoning in humans, symbolic systems, and AI agents. This paper and talk outline some of the core ideas that I have been exploring in the Bosque project and that form the basis of the production focused version of the system that I am working on now.
 
 This talk seemed like a good first post to set the tone for the blog. I hope you enjoy it!
 

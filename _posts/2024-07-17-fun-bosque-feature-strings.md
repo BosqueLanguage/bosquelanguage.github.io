@@ -1,6 +1,6 @@
 ---
 title: "Fun Bosque Feature -- Strings"
-date: 2024-07-16
+date: 2024-07-17
 layout: post
 ---
 
@@ -60,7 +60,37 @@ As with the regular String type the CString type provides aggressive validation 
 And of course CStrings also support multi-line literals and indentation using the same syntax as the unicode strings. 
 
 ## String APIs with Soft-Edges
-In addition 
+One of the advantages of splitting these two string types is that it allows for a clear separation of the APIs that are needed for each. Consider one of the major pain points of unicode strings -- character indexing. In a `uft8` encoded string the number of bytes in a character can vary from 1 to 4. This means that indexing into a string by character is a awkward operation and, even in apis that support it (like JavaScript stings) have subtle bugs -- consider the `charCodeAt` vs `codePointAt` methods or indexing halfway into a non-utf16 postion ☹️ Even if everything works correctly we still need to worry about normalization, combining marks, glyphs, and never forget z̵̨̞̑̍͋a̸̪̒̐l̷͎̩̫̿g̷̗̾o̴͖͆ text!
+
+By splitting the string types, and their uses, Bosque can provide easy to understand integer index based APIs for `CStrings`, where characters are always 1 byte and always have a single representation. For the unicode `String` type we provide a more complex regex/position based API where operations are defined based on matching pattern positions and slicing instead of raw indexing.
+
+For example, consider a substring api. In a CString we can just use integer indices:
+```
+let s: CString = 'Hello, World!';
+let sub: CString = s.extractFront(5); //'Hello'
+```
+
+In a String we need to use a regex based approach:
+```
+let s: String = "Hello, World!";
+let sub: String = s.extractFront([^,]); //'Hello'
+```
+
+Initially this seems like a small difference but notice that it eliminates the need to worry about slicing in the middle of a character and makes explicit which chars are being matched, in this case we (correctly) include any combining marks. 
+
+We provide a flexible flavor of slicing as well, allowing for open/closed ranges and regex/constant (or integer for CString) based end points. This allows for a wide range of operations to be expressed in a simple and compact manner. For example:
+```
+let s: String = "Hello, World!";
+let what: String = s(" " : /[.?!]/]; //World!
+let say: String = s[ : ","); //Hello
+
+let cs: CString = 'Hello, World!';
+let what: CString = cs[-6 : ]; //World!
+let say: CString = cs[ : /',' | ' '/c); //Hello
+```
+
+Surprisingly, the use of regex expressions (or string literals) initially seems to be more complex than raw integer indexing but, in practice, it actually seems to do a better job of expressing the underlying intent of the operation and is more robust to varied (or corner case inputs). Interestingly, this seems to mirror the experience of [FlashFill in Excel](https://support.microsoft.com/en-us/office/using-flash-fill-in-excel-3f9bcf1e-db93-4890-94a0-1578341f73f7), which allows a user to provide examples of a string operations on a column of data and learns a program to perform the operation -- for example taking email addresses and extracting the domains. In this system the underlying program is actually in a simplified [regex matching and string extraction/concatination language](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/popl11-synthesis.pdf) as it turnd out that the regex based approach was much more robust and generalized better than a more traditional string manipulation API.
+
 
 ## Regex support, Templates, and ByteBuffers
-...
+There is of course much more to strings than just literals and slicing. In the same way we sought to simplify and improve string types for the multiple roles they play in programs, Bosque also has specialized (improved) Unicode and CString regex support, templates for building string in a safe and checkable manner, and newtype-able byte buffers for situations like (opaque) OS of FileSystem specific path manipulation. We will dive into some of these in future posts!

@@ -41,9 +41,26 @@ As we will hear many times in this blog -- correctness and reliability are key g
 ```
 
 ## CStrings -- `[ -~\t\n]*` and thats it!
-For many use cases the full Unicode character space is not needed and having to worry about multi-byte characters, normalization, combining marks, visually similar glyphs, etc. can be a burden and a source of bugs. These uses of strings for (mostly internal) data manipulation and processing can be well served by a simple ASCII string model. So, Bosque provides a simple `CString` type that consists of the _printable_ subset of `ascii` characters -- no embedded nulls, backspaces, bells, etc. -- which, with the disappearance of the teletype, now serve mainly as a a source of trivia and bugs!
+For many use cases the full Unicode character space is not needed and worrying about multi-byte characters, normalization, combining marks, visually similar glyphs, etc. is a burden and a source of bugs. These uses of strings for (mostly internal) data manipulation and processing can be well served by a simple ASCII string model. Bosque provides a simple `CString` type that consists of the _printable_ subset of `ascii` characters -- no embedded nulls, backspaces, bells, etc. -- which, with the disappearance of the teletype, now serve mainly as a a source of trivia and bugs!
+
+These CString literals are denoted with the single `'...'` marks. Special characters and hex encoded char values are escaped using the `%...;` syntax. In a CString the special `%;` escape corresponds to a ' character (as opposed to a " for the unicode strings). Examples of strings include:
+```
+'Hello, World!'       -> Hello World!
+"Y%x59;"              -> YY
+"a %; %dollar; %x59;" -> a ' $ Y
+```
+
+As with the regular String type the CString type provides aggressive validation for string literal (and other string inputs). Any string value is checked for valid char ranges (e.g. no control or unicode values). Literals are also checked for unterminated escape sequences, bad escape names, and invalid numeric escapes.
+```
+"Hello, %x59"         -> error missing ;
+"Hello, %newline;"    -> invalid name (should be %n;)
+"Hello, %x0;"         -> invalid CString character
+```
+
+And of course CStrings also support multi-line literals and indentation using the same syntax as the unicode strings. 
 
 ## String APIs with Soft-Edges
+In addition 
 
 ## Regex support, Templates, and ByteBuffers
 ...

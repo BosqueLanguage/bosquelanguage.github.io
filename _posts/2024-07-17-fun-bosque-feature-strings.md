@@ -78,7 +78,7 @@ let sub: String = s.extractFront([^,]); //'Hello'
 
 Initially this seems like a small difference but notice that it eliminates the need to worry about slicing in the middle of a character and makes explicit which chars are being matched, in this case we (correctly) include any combining marks. 
 
-We provide a flexible flavor of slicing as well, allowing for open/closed ranges and regex/constant (or integer for CString) based end points. This allows for a wide range of operations to be expressed in a simple and compact manner. For example:
+We are working on a flexible flavor of slicing as well, allowing for open/closed ranges and regex/constant (or integer for CString) based end points ([Issue #95](https://github.com/BosqueLanguage/BosqueCore/issues/95)). This allows for a wide range of operations to be expressed in a simple and compact manner. For example:
 ```
 let s: String = "Hello, World!";
 let what: String = s(" " : /[.?!]/]; //World!

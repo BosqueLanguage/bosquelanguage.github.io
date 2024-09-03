@@ -64,8 +64,8 @@ function doSomething(companyId: CompanyId, userId: UserId): User {
     ...
     %%Type error for both literals (at compile time)!
     let user2 = getUser(
-        " Robert'); DROP TABLE Students;--"<CompanyId>, 
-        ""<UserId>
+        ' Robert%;); DROP TABLE Students;--'<CompanyId>, 
+        ''<UserId>
     );
     ...
 }

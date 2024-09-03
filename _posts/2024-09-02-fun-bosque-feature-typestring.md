@@ -5,7 +5,7 @@ layout: post
 ---
 
 # Simple new `type` and Type-Of Strings!!!
-In the last 2 features of the blog we have looked at the Bosque {% raw %}[string types]({{ site.base_url }}{% link _posts/2024-07-17-fun-bosque-feature-strings.md %}){% endraw %} and a {% raw %}[reworking of regular expressions]({{ site.base_url }}{% link _posts/2024-08-12-fun-bosque-feature-regex.md %}){% endraw %}. In this entry we are going to explore how these features, work the the new `type` operator in Bosque to provide a powerful and flexible way to work with strings containing implicitly structured data in a type safe manner.
+In the last 2 features of the blog we have looked at the Bosque [string types](https://bosquelanguage.github.io/2024/07/17/fun-bosque-feature-strings.html) and a [reworking of regular expressions](https://bosquelanguage.github.io/2024/07/17/fun-bosque-feature-regex.html). In this entry we are going to explore how these features, work the the new `type` operator in Bosque to provide a powerful and flexible way to work with strings containing implicitly structured data in a type safe manner.
 
 ## Bosque new `type` Operator
 Type alias declarations are the feature that allow us to lift from primitive types built into the language into types that are specific to an application domain. A `type` alias is a new-type definition that takes a primitive type and creates a _distinct_ new named type. 

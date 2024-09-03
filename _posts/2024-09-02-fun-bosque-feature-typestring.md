@@ -91,8 +91,8 @@ We have focused on string in this post but new types can be created from any pri
 ```
 type Fahrenheit = Int;
 
-let a = 100i_Fahrenheit;​
-let b = 99i_Fahrenheit;​
+let a = 100i<Fahrenheit>;​
+let b = 99i<Fahrenheit>;​
 
 assert a < b;​
 ```

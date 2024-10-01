@@ -80,10 +80,14 @@ let cid = CompanyId{'company'.prepend('--')}; %%runtime error "--" not in the re
 ```
 
 ## Stacking 
-In addition to simply defining a new type from a primitive type, the `type` operator can also be used to stack new types on top of each other. This allows for the creation of more complex types that are composed of simpler types. For example, we can define a `type` that is a `Zipcode` specific to, say, Kentucky as:
+In addition to simply defining a new type from a primitive type, the `type` operator can also be used to stack multiple regexs on top of each other. This allows for the creation of more complex types that are composed of simpler types. For example, we can define a `type` that is a `Zipcode` specific to, say, Kentucky as:
 ```
-type Zipcode = CString of /[0-9]{5}('-'[0-9]{4})?/c;
-type KentuckyZipcode = Zipcode of /^'4'[0-2]/c; %%Zipcode and starting with 4 and a [0-2]
+declare namespace Main;
+
+const zipcodeRE: CRegex = /[0-9]{5}('-'[0-9]{4})?/c;
+
+type Zipcode = CString of Main::zipcodeRE;
+type KentuckyZipcode = CString of /${Main::zipcodeRE} & ^'4'[0-2]/c; %%Zipcode and starting with 4 and a [0-2]
 ```
 
 ## Other Values

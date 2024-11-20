@@ -67,13 +67,13 @@ By splitting the string types, and their uses, Bosque can provide easy to unders
 For example, consider a substring api. In a CString we can just use integer indices:
 ```
 let s: CString = 'Hello, World!';
-let sub: CString = s.extractFront(5); //'Hello'
+let sub: CString = s.extractFront(5); %%'Hello'
 ```
 
 In a String we need to use a regex based approach:
 ```
 let s: String = "Hello, World!";
-let sub: String = s.extractFront([^,]); //'Hello'
+let sub: String = s.extractFront(/[a-zA-Z]/); %%'Hello'
 ```
 
 Initially this seems like a small difference but notice that it eliminates the need to worry about slicing in the middle of a character and makes explicit which chars are being matched, in this case we (correctly) include any combining marks. 
@@ -81,12 +81,12 @@ Initially this seems like a small difference but notice that it eliminates the n
 We are working on a flexible flavor of slicing as well, allowing for open/closed ranges and regex/constant (or integer for CString) based end points ([Issue #95](https://github.com/BosqueLanguage/BosqueCore/issues/95)). This allows for a wide range of operations to be expressed in a simple and compact manner. For example:
 ```
 let s: String = "Hello, World!";
-let what: String = s(" " : /[.?!]/]; //World!
-let say: String = s[ : ","); //Hello
+let what: String = s(" " : /[.?!]/]; %%World!
+let say: String = s[ : ","); %%Hello
 
 let cs: CString = 'Hello, World!';
-let what: CString = cs[-6 : ]; //World!
-let say: CString = cs[ : /',' | ' '/c); //Hello
+let what: CString = cs[-6 : ]; %%World!
+let say: CString = cs[ : /',' | ' '/c); %%Hello
 ```
 
 Surprisingly, the use of regex expressions (or string literals) initially seems to be more complex than raw integer indexing but, in practice, it actually seems to do a better job of expressing the underlying intent of the operation and is more robust to varied (or corner case inputs). Interestingly, this seems to mirror the experience of [FlashFill in Excel](https://support.microsoft.com/en-us/office/using-flash-fill-in-excel-3f9bcf1e-db93-4890-94a0-1578341f73f7), which allows a user to provide examples of a string operations on a column of data and learns a program to perform the operation -- for example taking email addresses and extracting the domains. In this system the underlying program is actually in a simplified [regex matching and string extraction/concatination language](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/popl11-synthesis.pdf) as it turnd out that the regex based approach was much more robust and generalized better than a more traditional string manipulation API.

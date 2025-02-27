@@ -1,6 +1,6 @@
 ---
 title: "Compactly Solvable Languages"
-date: 2025-02-28
+date: 2025-03-05
 layout: post
 ---
 
@@ -14,8 +14,10 @@ As a result the formal guarantee that a model checker makes on the existence of 
 
 This is an interesting issue and I am trying to formulate more precisely what/why this is a problem. So, let me share an experimental viewpoint on the topic. Conceptually, if we view the program input space as being a space that can be (partitioned into a finite cover)[https://www.cs.montana.edu/courses/se422/currentLectures/Ch4.pdf] then an exploration does not guarantee the coverage of any particular part of the input space. Instead each run covers some part of the execution trace partition but, as the unrollings are unbounded, the trace coverage will never be complete (in some cases the use of (interpolants)[https://rg1-teaching.mpi-inf.mpg.de/old-ag2/teachingpodelski/MCseminar/talk-ScottCotton.pdf] enable completion but this is not guaranteed). Conversely, if we believe the _input equivalence partition_ hypothesis then we can say that if we verify the absence of errors for a finite cover for each input partition then we can guarantee the absence of errors for all inputs -- and one particular input partition is widely hypothesized to be related to the vast majority of errors.
 
+The (small-model hypothesis)[https://ieeexplore.ieee.org/document/538605] or small-repro requirement when filling a bug report is the principle that any bug can be reproduced with a "reasonably" simple set of steps. In practice the number of issues that satisfy this requirement is very high. Thus, taking the compactness viewpoint, a high value input partition to cover is the set of small inputs! With this perspective we can see that the inability of model checking to reliably cover this input partition, instead of all small execution unrollings, leads to low coverage of simple (and high likelyhood) bugs.
+
+Bosque presents a unique opportunity as the source language is specifically designed to translate 1-1 into (mostly) efficiently decidable (SAT Modulo-Theory)[https://github.com/Z3Prover/z3] Formula. ...
+
 ....
 
-
-remember interpolants 
 

@@ -36,10 +36,6 @@ errtest singleOpFailure(op: DatabaseOperation): CString {
 
 ![Error report -- failing input found](https://bosquelanguage.github.io/assets/errorchecks/error_db.png)
 
-<video controls>
-    <source src="https://bosquelanguage.github.io/assets/errorchecks/chkall_db.webm" type="video/webm" />
-</video>
-
 Awesome! That gives us a lot of confidence in the correctness of our implementation and found one case of a bug -- specifically when we try and add a row but forgot to check that the size of the row to insert matches the size expected for the table :( Of course we can generalize this more by allowing the database to be a parameter as well _or_ by checking that a specific property always holds, for example, that after a remove operation the number of rows in a table has always decreased.
 
 ```

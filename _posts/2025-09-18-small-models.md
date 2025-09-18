@@ -34,9 +34,9 @@ errtest singleOpFailure(op: DatabaseOperation): CString {
 }
 ```
 
-![Error report -- failing input found](../assets/errorchecks/error_db.png)
+![Error report -- failing input found](https://github.com/BosqueLanguage/bosquelanguage.github.io/assets/errorchecks/error_db.png)
 
-<video src="../assets/errorchecks/chkall_db.webm" width="830" height="445" controls></video>
+<video src="https://github.com/BosqueLanguage/bosquelanguage.github.io/assets/errorchecks/chkall_db.webm" width="830" height="445" controls></video>
 
 Awesome! That gives us a lot of confidence in the correctness of our implementation and found one case of a bug -- specifically when we try and add a row but forgot to check that the size of the row to insert matches the size expected for the table :( Of course we can generalize this more by allowing the database to be a parameter as well _or_ by checking that a specific property always holds, for example, that after a remove operation the number of rows in a table has always decreased.
 
@@ -48,11 +48,11 @@ chktest removeInvariant(db: Database): Bool {
 }
 ```
 
-![Error report -- counter-example input found](../assets/errorchecks/chkerr_found.png)
+![Error report -- counter-example input found](https://github.com/BosqueLanguage/bosquelanguage.github.io/assets/errorchecks/chkerr_found.png)
 
 Running this test, obviously in hindsight, finds the case where this property does not hold -- specifically when we try and remove a row from an empty table! Updating our expectations to `db.entries.size() >= rdb.entries.size();` will then report that this property holds for all small databases and remove operations.
 
-![Error report -- no failures found](../assets/errorchecks/chkerr_fixed.png)
+![Error report -- no failures found](https://github.com/BosqueLanguage/bosquelanguage.github.io/assets/errorchecks/chkerr_fixed.png)
 
 So, how does all this work, what is the relation to agentic AI, and what are the next steps?
 

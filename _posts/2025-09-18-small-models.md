@@ -50,7 +50,7 @@ chktest removeInvariant(db: Database): Bool {
 
 Running this test, obviously in hindsight, finds the case where this property does not hold -- specifically when we try and remove a row from an empty table! Updating our expectations to `db.entries.size() >= rdb.entries.size();` will then report that this property holds for all small databases and remove operations.
 
-![Error report -- no failures found](https:/bosquelanguage.github.io/assets/errorchecks/chkerr_fixed.png)
+![Error report -- no failures found](https://bosquelanguage.github.io/assets/errorchecks/chkerr_fixed.png)
 
 So, how does all this work, what is the relation to agentic AI, and what are the next steps?
 

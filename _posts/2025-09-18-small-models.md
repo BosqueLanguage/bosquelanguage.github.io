@@ -65,12 +65,51 @@ A [recent blog](https://www.galois.com/articles/what-works-and-doesnt-selling-fo
 - **Guarantees:** The validation should have a known termination condition, after which, there is some articulable guarantee about what the validation ensures.
 
 Looking at the landscape of techniques, we can see that each has its strengths and weaknesses:
-| Technique | Strengths | Weaknesses |
-|-----------|-----------|------------|
-| AbsInt    | &#9989; Fully automatic and scalable to large codebases | &#128683; Lots of false positives and only checks a subset of (fixed) properties. |
-| Proofs    | &#9989; Full correctness guarantees and works for arbitrary properties | &#128683; Requires (extensive) manual proof work and often specialized knowledge to formulate/complete verification |
-| BMC       | &#9989; Fully automated, can find counterexamples, and works for arbitrary properties | &#128683; No guarantees on the absence of errors -- they may be present but missed by exploration strategy and path explosion|
-| DySym     | &#9989; Fully automated, can find counterexamples and works for arbitrary properties | &#128683; No guarantees on the absence of errors -- they may be present but missed by exploration strategy and path explosion|
+<style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #f2f2f2;
+  }
+</style>
+<table>
+  <thead>
+    <tr>
+      <th>Technique</th>
+      <th>Strengths</th>
+      <th>Weaknesses</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>AbsInt</td>
+      <td>✅ Fully automatic and scalable to large codebases</td>
+      <td>🚫 Lots of false positives and only checks a subset of (fixed) properties.</td>
+    </tr>
+    <tr>
+      <td>Proofs</td>
+      <td>✅ Full correctness guarantees and works for arbitrary properties</td>
+      <td>🚫 Requires (extensive) manual proof work and often specialized knowledge to formulate/complete verification</td>
+    </tr>
+    <tr>
+      <td>BMC</td>
+      <td>✅ Fully automated, can find counterexamples, and works for arbitrary properties</td>
+      <td>🚫 No guarantees on the absence of errors -- they may be present but missed by exploration strategy and path explosion</td>
+    </tr>
+    <tr>
+      <td>DySym</td>
+      <td>✅ Fully automated, can find counterexamples and works for arbitrary properties</td>
+      <td>🚫 No guarantees on the absence of errors -- they may be present but missed by exploration strategy and path explosion</td>
+    </tr>
+  </tbody>
+</table>
 
 ## Small-Model Validation
 Based this analysis and cost/benefit drivers for the adoption of formal validation techniques in industry we can try a new approach for Bosque -- small-model validation (SMV):

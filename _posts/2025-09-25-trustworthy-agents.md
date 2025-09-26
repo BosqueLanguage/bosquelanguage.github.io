@@ -11,7 +11,7 @@ However there is another space where the ability to validate the safety of a set
 
 In this world merely saying that a system is likely to behave correctly is not sufficient. Existing tool use frameworks (such as MCP) provide agents unchecked access to information and systems, which if misused, can have serious consequences. Guarantees about behavior are limited to a statistical statement that, under normal operating conditions, the system will, with high likelihood, behave as expected and this is insufficient for applications which handle sensitive data or perform important operations and, in the presence of malicious actors who seek to confuse or mislead an agent, this risk is unacceptable. 
 
-Earlier this month we submitted a new research direction in an NSF proposal to address this challenge: [Trustworthy-by-Construction Agentic APIs](https://bosquelanguage.github.io/assets/research/papers/TrustWorthyAgents.pdf). This proposal aims to provide a framework for creating trustworthy-by-construction agentic APIs that allow AI agents to interact with the world in a safe and predictable manner even under unexpected (or adversarial) operating conditions!
+Earlier this month we submitted a new research direction in an NSF proposal to address this challenge: [Trustworthy-by-Construction Agentic APIs](https://bosquelanguage.github.io/assets/research/papers/TrustworthyAgents.pdf). This proposal aims to provide a framework for creating trustworthy-by-construction agentic APIs that allow AI agents to interact with the world in a safe and predictable manner even under unexpected (or adversarial) operating conditions!
 
 ## The Essence of Trustworthy Agents
 

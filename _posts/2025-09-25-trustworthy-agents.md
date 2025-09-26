@@ -4,23 +4,25 @@ date: 2025-09-26
 layout: post
 ---
 
-The previous post briefly reviewed the state of our ability to translate Bosque code into (decidable) logical formulas for formal analysis of program behavior using SMT solvers. A natural application of this capability is to symbolically validate, in a formal sense, the behavior of an application via 
-[property-based-testing or proving the absence of certain classes of bugs](https://bosquelanguage.github.io/2025/09/18/small-models.html).
+Our previous post reviewed the ability to translate Bosque code into (decidable) logical formulas for (fully automatic) formal analysis of program behavior using SMT solvers. A natural application of this capability is to symbolically validate, in a formal sense, the behavior of an application via 
+[property-based-testing or proving the absence of failing asserts and runtime errors](https://bosquelanguage.github.io/2025/09/18/small-models.html).
 
-However there is another space where the ability to validate the safety of a set of actions (expressed in code) is crucial -- agentic AI systems. These systems are intended to operate in, and interact with, the real world to accomplish tasks on our behalf. This includes tasks that are mundane, like searching for a recipe, but also tasks that involve destructive (or irreversible) actions, tasks that involve sensitive data, or tasks that entail financial or reputational costs to rectify if they are done poorly. In this world merely saying that a system is likely to behave correctly is not sufficient. Existing tool use frameworks (such as MCP) provide agents unchecked access to information and systems, which if misused, can have serious consequences. Guarantees about behavior are limited to a statistical statement that, under normal operating conditions, the system will, with high likelihood, behave as expected and this is insufficient for applications which handle sensitive data or perform important operations and, in the presence of malicious actors who seek to confuse or mislead an agent, this risk is unacceptable. 
+However there is another space where the ability to validate the safety of a set of actions (expressed in code) is crucial -- agentic AI systems. These systems are intended to operate in, and interact with, the real world to accomplish tasks on our behalf. This includes tasks that are mundane but also tasks that involve destructive (or irreversible) actions, tasks that involve sensitive data, or tasks that entail financial or reputational costs to rectify if they are done poorly. 
 
-Earlier this month we proposed a new research direction in an NSF proposal to address this challenge: [Trustworthy-by-Construction Agentic APIs](https://bosquelanguage.github.io/assets/research/papers/TrustWorthyAgents.pdf). This proposal aims to provide a framework for creating trustworthy-by-construction agentic APIs that allow AI agents to interact with the world in a safe and predictable manner even under unexpected (or adversarial) operating conditions!
+In this world merely saying that a system is likely to behave correctly is not sufficient. Existing tool use frameworks (such as MCP) provide agents unchecked access to information and systems, which if misused, can have serious consequences. Guarantees about behavior are limited to a statistical statement that, under normal operating conditions, the system will, with high likelihood, behave as expected and this is insufficient for applications which handle sensitive data or perform important operations and, in the presence of malicious actors who seek to confuse or mislead an agent, this risk is unacceptable. 
+
+Earlier this month we submitted a new research direction in an NSF proposal to address this challenge: [Trustworthy-by-Construction Agentic APIs](https://bosquelanguage.github.io/assets/research/papers/TrustWorthyAgents.pdf). This proposal aims to provide a framework for creating trustworthy-by-construction agentic APIs that allow AI agents to interact with the world in a safe and predictable manner even under unexpected (or adversarial) operating conditions!
 
 ## The Essence of Trustworthy Agents
 
-Our objective is to provide a framework for creating reliable-by-construction agentic APIs that allow AI agents to interact with the world in a safe and predictable manner under unexpected operating conditions and/or adversarial situations. We take the position that a foundational aspect of AI Agents is the interface they use to interact with the world. Specifically:
+We take the position that a foundational aspect of AI Agents is the interface they use to interact with the world. Specifically:
 1. Agents use **software APIs** to interact with the world.
-2. Agents **must be able to reason**, probabilistically and formally, about their actions and the potential consequences.
+2. Agents **must be able to reason**, probabilistically and formally, about their actions and the **potential consequences**.
 3. The design and specification of **APIs must be optimized for Agentic use and analysis**. 
 
-Based on [previous work](https://dl.acm.org/doi/abs/10.1145/3622758.3622895) and experience while we hypothesize that, these three components are closely linked. Fundamentally, an API that is easy for a human to use, and for formal verification tooling to reason about, is also an API that is easy for an Large Language Model (LLM) AI Agent to use.
+Based on [previous work](https://dl.acm.org/doi/abs/10.1145/3622758.3622895) and experience we hypothesize that, these three components are closely linked. Fundamentally, an API that is easy for a human to use, and for formal verification tooling to reason about, is also an API that is easy for an Large Language Model (LLM) AI Agent to use.
 
-The resulting APIs and AI Agents operating on them are **trustworthy-by-construction** in that they are designed to provide a clear contract on what the result of an action, and thus an agents plan will be, and ensure that an agent works with a proscribed set of resources and is fully sandboxed in terms of what it can access.
+The resulting APIs and AI Agents operating on them will then be **trustworthy-by-construction** in that they are designed to provide a clear contract on what the result of an action is, and thus an agents plan will be, and ensure that an agent works with a proscribed set of resources and is fully sandboxed in terms of what it can access.
 
 ## Creating an API Suitable for a Trustworthy-by-Construction Agent
 
@@ -31,10 +33,10 @@ type USD = Decimal ;
 entity Account { ... }
 entity Confirmation { ... }
 
-api transfer (amt: USD, from: Account, payee: Account): Confirmation;
+api transfer(amt: USD, from: Account, payee: Account): Confirmation;
 ```
 
-This API provides a syntactically explicit and useable description for an AI Agent. Bosque is designed to move information from implicit (API documentation pages) into explicit syntactic features of the code. In our example the type system allowing the type alias of USD to be used as a unit of currency instead of a simple number with a comment that it is a dollar amount. Rough experimentation shows that, even without specific training, a model like Gemini-2 or GPT-4 has a roughly 20% higher success rate of generating code using this API than the equivalent in TypeScript. 
+This API provides a syntactically explicit and useable description for an AI Agent. Bosque is designed to move information from implicit (API documentation pages) into explicit syntactic features of the code. In our example the type system allowing the type alias of USD to be used as a unit of currency instead of a simple number with a comment that it is a dollar amount. Rough experimentation shows that, even without specific training, a model like Gemini-2.5 has a roughly 20% higher success rate of generating code using this API than the equivalent in TypeScript. 
 
 Even with this significantly improved success rate the API is still ripe for accidental misuse or targeting by malicious actors seeking to confuse our agent. Today we could improve this API in Bosque by adding a simple pre-condition to the API:
 ```
@@ -45,8 +47,7 @@ api transfer(amt: USD, from: Account, payee: Account): Confirmation
 ```
 These simple pre-condition ensure the useful constraint that we should never pay a negative amount of money (also a payment of zero does not make sense) and that the API cannot be used to transfer more than $100.0 USD. However, this is not entirely satisfactory as an agent could still erroneously transfer money, even if the amount is small. Further, the dollar amount is hard-coded into the API and does not allow for situational flexibility when the agent is operating in a different contexts/environments.
 
-Conveniently, programming languages have two well known concepts that support these needs – Scoped Dynamic Environments and Uniform Resource Identifiers (URIs). Scoped Dynamic Environments allow us to describe a set of ambient variables that are available to the agent during the execution of some code and URIs are a familiar and flexible (syntactic) way to describe permissions at a logical level – notably the underlying data representation is not exposed via the URI naming scheme. Thus, developers can use these to organically create a model of arbitrary resources and access controls (using Globs) that compactly describe the resources that
-an agent can access (and that are accessed by any given API call).
+Conveniently, programming languages have two well known concepts that support these needs – Scoped Dynamic Environments and Uniform Resource Identifiers (URIs). Scoped Dynamic Environments allow us to describe a set of ambient variables that are available to the agent during the execution of some code and URIs are a familiar and flexible (syntactic) way to describe resources at a logical level – notably the underlying data representation is not exposed via the URI naming scheme. Thus, developers can use these to organically create a model of arbitrary resources and access controls (using Globs) that compactly describe the resources that an agent can access (and that are accessed by any given API call).
 ```
 api transfer(amt: USD, from: Account, payee: Account): Confirmation
   env ={
@@ -70,7 +71,7 @@ The explicit nature and structure of the specifications, as opposed to free form
 
 ## CheckFlow Logic for Multi-Step Plan Safety
 
-This design allows us to express safety of single actions (calls) bu agentic tasks are often dynamic multi-step processes that involve sequences of actions and events. The APIs that are used often have constraints on the order of their use or other temporal properties that must be satisfied. For example, a payment API may require that a user confirmation has been made before a payment is sent, or before sending a purchase confirmation, that the reservation has been successfully made in the system. If we look at the example payment API we can extend it with a user confirmation requirement.
+This design allows us to express safety of single actions (calls) but agentic tasks are usually multi-step processes that involve sequences of actions and events. The APIs that are used often have constraints on the order of their use or other temporal properties that must be satisfied. For example, a payment API may require that a user confirmation has been made before a payment is sent, or before sending a purchase confirmation, that the reservation has been successfully made in the system. If we look at the example payment API we can extend it with a user confirmation requirement.
 
 ```
 api transfer(amt: USD, from: Account, payee: Account): Confirmation
@@ -92,7 +93,7 @@ This API specification with a behavioral checkflow added the requirement that th
 
 This direct and intuitive way to express these properties is expressed in terms of a (linearized) series of events that occur during the execution of a system. Conditions can then be specified over these sequence of events, such as ”the user must approve the payment before it is sent” or ”if a read etag matches the previous write etag then the contents of the read are equal to the contents written”. This has the benefit of being directly expressible as code in a manner a developer (or LLM based agent) is already familiar with and allows for the expression of arbitrary computable conditions over the sequence of events.
 
-This form of logical predicates over sequences of events can also be used to express the effects of API calls as well. A sailboat rental API might have a sequence of events that includes checking the weather forecast and confirming inventory availability. In the example we have an API that allows an agent to rent a sailboat for a given day. The API has two permissions, one for the weather service and one for the internal sailboat availability service (which is otherwise opaque to us). The API is defined as ensuring that if the response is a success, then two events must occur during the execution of the API call:
+This form of logical predicates over sequences of events can also be used to express the effects of API calls as well. A sailboat rental API might have a sequence of events that includes checking the weather forecast and confirming inventory availability. Suppose we have an API that allows an agent to rent a sailboat for a given day. The API has two success requirements, one for the weather service and one for the internal sailboat availability service. The API is defined as ensuring that if the response is a success, then two events must occur during the execution of the API call:
 
 1. There must have been an API call to check that the weather is safe for sailing that day.
 2. There must have been a successful API call to ensure availability and reserve the sailboat inventory for the given quantity.
@@ -124,7 +125,7 @@ Consider the example request for an agent to “send a payment to Tom for half o
 let request = payments.search(user="Tom", memo="lunch");
 let amt = agent.query<Decimal>(request.asText(), "What is half of the lunch bill ?");
 if(amt === none ) {
-  return "I don ’t know how much to pay Tom .";
+  return "I don’t know how much to pay Tom.";
 }
 
 let result = transfer(USD::from(amt), from=env.account, payee=request.payee);
@@ -144,7 +145,7 @@ Using these two strategies in combination provides a powerful framework for ensu
 
 The final step toward truly trustworthy agentic behavior is to expose the validation tools directly to the agent during their planning process as an online feedback loop. This allows agents to reason about their own plans and introspect on their actions. Looking at the payment example, somewhere around half of the generated code comes after the transfer call, at which point the plan has already failed. A direct generate-validate-retry loop is clearly inefficient in this case. Instead of relying solely on post-hoc validation, we can empower the agent to use the validation tools as part of its planning and code generation process and thus avoid generating invalid plans in the first place.
 
-In our example the agent would be able to run the validation tool before an API call is added to the partial plan to see if the call is valid and if not, what needs to be done before the call can be made. The code below shows a hypothetical agent & tool chain-of-thought, tool use, and response. 
+In our example the agent would be able to run the validation tool before an API call is added to the partial plan to see if the call is valid and, if not, what needs to be done before the call can be made. The code below shows a hypothetical agent & tool chain-of-thought, tool use, and response. 
 ```
 let request = payments.search(user="Tom", memo="lunch");
 let amt = agent.query<Decimal>(request.asText(), "What is half of the lunch bill?");
@@ -163,4 +164,4 @@ As with all tools, we can also leverage Reinforcement Learning (RL) to improve t
 
 ## Onward to Trustworthy-by-Construction Agents (and APIs)!
 
-The ability to create trustworthy-by-construction APIs that allow AI agents to interact with the world in a safe and predictable manner is a foundational problem. Guaranteed trustworthy agents represent a critical advance over current systems which operate with statistical likelihoods of correctness and safety. Adding the needed API specification features and, revising the symbolic validator, are two major work items in our push this fall. From there we plan to rapidly roll out these agentic features and capabilities for experimentation, and as always, we welcome community input and collaboration!
+The ability to create trustworthy-by-construction APIs that allow AI agents to interact with the world in a safe and predictable manner is a foundational problem. Guaranteed trustworthy agents represent a critical advance over current systems which operate with statistical likelihoods of correctness and safety. Adding the needed API specification features and, revising the symbolic validator, are two major work items in our [push this fall](https://github.com/BosqueLanguage/BosqueCore). From there we plan to rapidly roll out these agentic features and capabilities for experimentation, and as always, we welcome community input and collaboration!

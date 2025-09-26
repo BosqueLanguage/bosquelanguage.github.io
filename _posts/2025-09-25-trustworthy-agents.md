@@ -142,3 +142,25 @@ Using these two strategies in combination provides a powerful framework for ensu
 
 ## Making Agents Introspective!
 
+The final step toward truly trustworthy agentic behavior is to expose the validation tools directly to the agent during their planning process as an online feedback loop. This allows agents to reason about their own plans and introspect on their actions. Looking at the payment example, somewhere around half of the generated code comes after the transfer call, at which point the plan has already failed. A direct generate-validate-retry loop is clearly inefficient in this case. Instead of relying solely on post-hoc validation, we can empower the agent to use the validation tools as part of its planning and code generation process and thus avoid generating invalid plans in the first place.
+
+In our example the agent would be able to run the validation tool before an API call is added to the partial plan to see if the call is valid and if not, what needs to be done before the call can be made. The code below shows a hypothetical agent & tool chain-of-thought, tool use, and response. 
+```
+let request = payments.search(user="Tom", memo="lunch");
+let amt = agent.query<Decimal>(request.asText(), "What is half of the lunch bill?");
+if (amt === none) {
+  return "I don’t know how much to pay Tom.";
+}
+
+%% Agent -- I want invoke [[transfer(USD::from(amt), from=env.account, payee=request.payee)]]
+%% Agent -- calling validation tool to check that API conditions are met
+%% Response -- Missing check for PAYMENT_LIMIT or explicit user confirmation
+```
+
+Using this feedback the agent can either emit the action code, if everything is satisfied, or generate additional code to address the missing requirements. This capability enables a higher success rate in task completion and makes the agent robust to errors, as it can reason about its own actions and correct them before they are executed
+
+As with all tools, we can also leverage Reinforcement Learning (RL) to improve the agent’s ability to use the tools effectively. Critically, these tools also provide novel abilities to shape rewards, provide immediate feedback, and terminate unsuccessful trajectories early. Thus, we can use the tools not only to improve the agent’s planning and execution but also to improve its learning process!
+
+## Onward to Trustworthy-by-Construction Agents (and APIs)!
+
+The ability to create trustworthy-by-construction APIs that allow AI agents to interact with the world in a safe and predictable manner is a foundational problem. Guaranteed trustworthy agents represent a critical advance over current systems which operate with statistical likelihoods of correctness and safety. Adding the needed API specification features and, revising the symbolic validator, are two major work items in our push this fall. From there we plan to rapidly roll out these agentic features and capabilities for experimentation, and as always, we welcome community input and collaboration!

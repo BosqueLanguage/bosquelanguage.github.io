@@ -66,6 +66,69 @@ The most notable feature of this algorithm is not what it has but what doesn't. 
 
 ## Experimental Results
 
+For our experimental evaluation, we consider a set of benchmarks that exercise different aspects of the \bosque language and its garbage collector. The first is a Bosque implementations of the n-body simulations programs from the [Computer Language Benchmarks Game](https://benchmarksgame-team.pages.debian.net/benchmarksgame/). The next is a raytracing program published on [Microsoft's MSDN blog](https://learn.microsoft.com/en-us/archive/blogs/lukeh/taking-linq-to-objects-to-extremes-a-fully-linqified-raytracer/). The db program is a Bosque implementation of the DB benchmark from SpecJVM 98. The final benchmark is the optimizer pass of the Bosque compiler (written in Bosque).
+
+The Pando collector is implemented in C++, $2.4$kloc at present, and all experiments were run on a system with an AMD Ryzen 9 9950X and 64GB of memory. The system is otherwise unloaded. All runs use a default nursery size of 8mb and a default page size of 4kb.
+| Benchmark | Code Size | Types | AllocCount | AllocMemory (GB) | Max Live Heap (KB) |
+|-----------|-----------|-------|------------|------------------|-------------------|
+| n-body | 193 | 68 | 1,248,474,177 | 69.5 | 5.1 |
+| raytracer | 273 | 34 | 822,135,153 | 34.4 | 2.8 |
+| db | 304 | 71 | 1,970,703,992 | 92.3 | 46.9 |
+| compiler | 5120 | 684 | 1,538,395,937 | 140.9 | 8,519 |
+
+*Static and dynamic statistics for the evaluation applications. Code Size is lines of Bosque source code and Types is the number of distinct Bosque types in the program. AllocCount is the total number of allocations, AllocMemory is the total bytes allocated, and Max Live Heap is the max live heap observed during execution.*
 
 
+### GC Performance
+The first evaluation is a throughput comparison between our new GC and an $\epsilon$-gc collector which allocates continuously from a bump buffer without any collections. We measure the total wall-clock time taken by the application and pause times for the collector. 
 
+| Benchmark | Pando (s) | ε-gc (s) | 50% Pause (μs) | 95% Pause (μs) | 99% Pause (μs) |
+|-----------|-----------|---------|----------------|----------------|----------------|
+| n-body | 1.14 | 1.72 | 137 | 172 | 186 |
+| raytracer | 1.03 | 1.18 | 151 | 198 | 214 |
+| db | 1.16 | 1.66 | 170 | 216 | 231 |
+| compiler | 1.13 | 1.64 | 166 | 213 | 258 |
+
+*Application wall-clock time comparison between our new GC and ε-gc collectors, and Pando pause time statistics at 50th, 95th, and 99th percentiles.*
+
+The results show that in all cases the new collector is actually faster than the $\epsilon$-gc collector by on average 25%. Our analysis indicates that this is due to the improved locality of the memory access patterns after copy-compaction out of the nursery which more than offsets the additional work required by the collector. The average pause times for the collector are quite low, with a 50% percentile pause time of 137μs-170μs across the benchmarks and a 99% percentile pause time of 258μs on any benchmark! 
+
+We also observe that the pause times are quite consistent across the benchmarks. Thus, as expected from the theoretical analysis, we see that the collector performance is largely invariant of the application workload and primarily a function on the nursery size.
+
+| Benchmark | Collections | Survival Rate | GC %Time | Heap Size (MB) |
+|-----------|-------------|---------------|----------|----------------|
+| n-body | 758 | 0.03% | 10.5% | 8.6 |
+| raytracer | 245 | 0.007% | 3.7% | 8.6 |
+| db | 553 | 0.31% | 12.4% | 8.7 |
+| compiler | 615 | 0.36% | 9.5% | 16.1 |
+
+*The first two columns show the total number of collections performed by the Pando collector during the benchmark run and the average survival rate of the nursery (at 8MB). The next column shows the percentage of total application time spent in GC. The final column shows the max memory used by the application, runtime, and collector as measured by total page usage from the OS.*
+
+Critically, the temporal behavior is _not_ achieved at the expense of memory overheads The maximum heap size used by the application during the execution of the benchmark, measured as the size of all committed memory pages used in the computation, is under 17MB for every application -- or only slightly more than the nursery size plus the live heap size. 
+
+The GC %Time column is the percentage of total application time spent in garbage collection -- this value is larger than is typical for a mature language/GC stack, however our analysis indicates that this is a function of an unoptimized GC codebase and high allocations rates incurred by the baseline implementations for persistent data-structures (lists and strings). Despite this, the values are still all under 12.5% for all benchmarks, indicating that the collector architecture is fundamentally performant. 
+
+These results demonstrate that the constant-factor overheads of the collector match the results in practice. Although our benchmark applications are limited in size the fundamental properties of the collector design, and theoretical guarantees, indicate that these results should hold for larger applications as well, Empirically, we note that the performance of the collector is largely invariant across the workloads and that, even in the face of heavy allocation, the collector does not experience long pauses or is ever out-run by the application.
+
+### Comparison with State-of-the-Art
+The final experiment is a direct comparison between our new collector and modern state-of-the-art low-latency Java garbage collectors on the same benchmark. The binary-trees benchmark is a small, but widely used benchmark from the Benchmark Shootout, that is highly heap intensive. It is designed explicitly to stress GC algorithms by creating long-lived data structures while simultaneously allocating at a very high rate. For our purposes it is also possible to implement using exactly same code structure in both Bosque and Java allowing for a true 1-1 comparison of Bosque/\gc with an mainstream language and various heavily optimized state-of-the-art GC algorithms.
+
+We compare our Pando GC with with ZGC and Shenandoah (in their default configurations), two modern low-latency garbage collectors for Java. These collectors are heavily optimized for concurrent and parallel collection, as opposed to Pando which is currently a baseline single-threaded implementation which fully pauses the application for the full collection cycle. 
+
+| Max Heap | ZGC Overhead | ZGC Time (secs) | Shenandoah Overhead | Shenandoah Time (secs) | Pando Overhead | Pando Time (secs) |
+|----------|--------------|-----------------|---------------------|------------------------|----------------|-------------------|
+| Unlimited | 8.1 | 3.6/4.7 | 12.3 | 2.0/2.9 | 1.3 | 5.7/5.3 |
+| 1.5× Live | 3.1 | 7.0/17.3 | 1.5 | 3.4/10.6 | 1.3 | 5.6/5.5 |
+
+*Direct comparison of Pando with state-of-the-art low-latency Java garbage collectors ZGC and Shenandoah on the binary-trees benchmark. The first column is the max heap size allowed, either unlimited or set to 1.5× the live heap size. The remaining columns show the memory over-provisioning overhead and time taken by each collector.*
+
+The first row in the table shows the results when the max heap size is unlimited allowing the collectors to use as much memory (up to 64 GB) and as many threads as desired (with a 16/32 core CPU). The Overhead columns show the memory over-provisioning factor as computed by the max heap size divided by the live heap size. The Time columns show the total time taken by the benchmark in terms of wall-clock time and CPU time over all threads (possibly running in parallel). As can be seen, both ZGC and Shenandoah are able to complete the benchmark in lower wall-clock time than Pando. However, this performance comes at the cost of significant memory overheads between 8.1× and 12.3× the live heap size -- in the case of Shenandoah using 3.3GB when compared to 359MB for Pando.
+
+The second row shows the result of the benchmark with the max heap size limited to 1.5× the live heap size (400MB). As shown in the table, both ZGC and Shenandoah experience severe performance degradation under this configuration with wall-clock time 1.7×-1.9× higher and CPU time spiking by nearly 3.6×. Conversely, Pando experiences no performance degradation under this configuration with both wall-clock and CPU times remaining stable. 
+
+Additionally, both ZGC and Shenandoah experience significant issues with GC pauses and application stalls under this configuration. The collectors report degenerate GC runs and forced synchronous collections as they are unable to keep up with the allocation rate.Conversely, Pando continues to operate normally with increased pauses due to the higher survival rates, and heavy RC workloads, but the fundamental characteristics of the collector prevent the emergence of pathological issues. In fact removing the RC decrement phase from the stop-the-world collection, e.g. by performing these operations concurrently on a background thread, is sufficient to keep the Pando 50% percentile times at 119μs and even the 99% percentile times under 10ms.
+
+These results demonstrate that the Pando collector can provide comparable low-latency performance to state-of-the-art Java garbage collectors while being immune to fundamentally pathological behavior tradeoffs that are unavoidable in existing mainstream languages and runtimes.
+
+
+## Conclusion

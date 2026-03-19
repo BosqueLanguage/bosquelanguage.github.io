@@ -68,6 +68,7 @@ The most notable feature of this algorithm is not what it has but what doesn't. 
 For our experimental evaluation, we consider a set of benchmarks that exercise different aspects of the Bosque language and its garbage collector. The first is a Bosque implementations of the n-body simulations programs from the [Computer Language Benchmarks Game](https://benchmarksgame-team.pages.debian.net/benchmarksgame/). The next is a raytracing program published on [Microsoft's MSDN blog](https://learn.microsoft.com/en-us/archive/blogs/lukeh/taking-linq-to-objects-to-extremes-a-fully-linqified-raytracer/). The db program is a Bosque implementation of the DB benchmark from SpecJVM 98. The final benchmark is the optimizer pass of the Bosque compiler (written in Bosque).
 
 The Pando collector is implemented in C++, 2.4kloc at present, and all experiments were run on a system with an AMD Ryzen 9 9950X and 64GB of memory. The system is otherwise unloaded. All runs use a default nursery size of 8mb and a default page size of 4kb.
+
 | Benchmark | Code Size | Types | AllocCount | AllocMemory (GB) | Max Live Heap (KB) |
 |-----------|-----------|-------|------------|------------------|-------------------|
 | n-body | 193 | 68 | 1,248,474,177 | 69.5 | 5.1 |

@@ -1,6 +1,6 @@
 ---
 title: "Going Where No GC Has Gone Before!"
-date: 2026-03-20
+date: 2026-03-19
 layout: post
 ---
 
@@ -9,7 +9,7 @@ Garbage Collectors (GCs) are a critical component of a modern application stack.
 Intriguingly, the pathological and scenarios that are needed to cause these issues depend on a specific set of language features -- mutability and cyclic data structures. In previous posts we have discussed how these features impact [mechanized analysis](https://bosquelanguage.github.io/2025/09/18/small-models.html) and how they are common sources of [developer (human and AI!) errors](https://dl.acm.org/doi/10.1145/3622758.3622895). But, as it turns out, they are also the source of GC pathologies and, in fact, by designing a language (Bosque) that is easy to analyze we have also created a language that provides strong invariants that 1) the GC can rely on to optimize its behavior and 2) that, when combined with some careful implementation, allow us to prove that our [new GC design for Bosque](https://arxiv.org/abs/2509.13429) is free of all pathological behaviors! 
 
 ## Theoretical Guarantees
-The first issue is to more precisely outline what behaviors we want to guarantee for the collector (and memory management system more generally).
+The first issue is to more precisely outline what behaviors we want to guarantee for the collector and memory management system more generally.
 
 1) **Bounded Collector Pauses:** The collector only requires the application to pause for a (small) bounded period that is proportional to the size of the nursery.
 2) **Starvation Freedom:** The collector can never be outrun by the application allocation rate and will always satisfy allocation requests (until true exhaustion).
@@ -17,7 +17,7 @@ The first issue is to more precisely outline what behaviors we want to guarantee
 4) **Application Code Independence:** The application code does not pay any cost, e.g. read/write barriers, remembered sets, etc., for the GC implementation.
 5) **Constant Memory Overhead:** The reserve memory required by the allocator/collector is bounded by a (small) constant overhead
 
-The first two properties are the most critical and are the ones that are often violated by pathological workloads. They are foundational to user perceived performance -- long pauses to responses are annoying and application crashes due to out-of-memory conditions are obviously undesirable. As pointed out, these properties are also previously impossible for GC systems to simultaneously satisfy.
+The first two properties are the most critical and are the ones that are often violated by pathological workloads. They are foundational to user perceived performance -- long pauses to responses are annoying and application crashes due to out-of-memory conditions are obviously undesirable. 
 
 The next two properties are also important and are often violated in GC designs. The need to repeatedly visit objects (e.g. marked dirty and re-scanned after modification) is a parasitic cost that can lead to high CPU utilization and increased cache pressure (misses) that are difficult to predict and optimize for. Similarly, the cost for synchronizing the application and GC state (e.g. read/write barriers) is a smaller (5% direct) cost but, over the course of an application adds both the direct costs and indirect costs on every field write (read) operation. 
 
@@ -37,10 +37,9 @@ As noted in the introduction, these issues are not simply engineering challenges
 - **Cycle Freedom:** In combination with the immutability of entities, and careful definition of constructor semantics, the Bosqe language ensures that all data structures are acyclic. This invariant allows us to utilize reference-counting techniques without concern for backup cycle-collection or other special case logic.
 
 ## Pando GC Design
-The absence of the above pathologies creates the potential for building a fully pathology free GC. However, this theoretical possibility does not give us a specific design. Thus, our challenge is to find a GC design (and implementation) that can leverage these language features and invariants to satisfy the above properties.
+The absence of the above complications creates the potential for building a fully pathology free GC. However, this theoretical possibility does not give us a specific design. Thus, our challenge is to find a GC design (and implementation) that can leverage these language features and invariants to satisfy the above properties.
 
 Looking at properties of GC designs, tracing vs reference counting (RC), a key item to note is that tracing is very good at quickly allocating and reclaiming memory while RC systems are excellent at short-pauses and only touching objects when lifetime events occur (e.g. deallocations). Thus, a natural design is to combine these two approaches -- using tracing for the nursery and RC for the older generation. We are not the first to notice this, in fact this idea was proposed by two groups in 2003 [[1](https://dl.acm.org/doi/10.1145/949343.949336), [2](https://dl.acm.org/doi/10.5555/1145763.1145764)]. However, as they were working with Java, which has both mutation and cycles, their ability to leverage key features of this design were limited.
-
 In contrast, Bosque allows us to aggressively simplify the design and implementation of this combined tracing/RC collector! 
 
 In the Bosque collector design heap values can be in one of two logical regions, the nursery or the reference-counted old space. 
@@ -66,9 +65,9 @@ The most notable feature of this algorithm is not what it has but what doesn't. 
 
 ## Experimental Results
 
-For our experimental evaluation, we consider a set of benchmarks that exercise different aspects of the \bosque language and its garbage collector. The first is a Bosque implementations of the n-body simulations programs from the [Computer Language Benchmarks Game](https://benchmarksgame-team.pages.debian.net/benchmarksgame/). The next is a raytracing program published on [Microsoft's MSDN blog](https://learn.microsoft.com/en-us/archive/blogs/lukeh/taking-linq-to-objects-to-extremes-a-fully-linqified-raytracer/). The db program is a Bosque implementation of the DB benchmark from SpecJVM 98. The final benchmark is the optimizer pass of the Bosque compiler (written in Bosque).
+For our experimental evaluation, we consider a set of benchmarks that exercise different aspects of the Bosque language and its garbage collector. The first is a Bosque implementations of the n-body simulations programs from the [Computer Language Benchmarks Game](https://benchmarksgame-team.pages.debian.net/benchmarksgame/). The next is a raytracing program published on [Microsoft's MSDN blog](https://learn.microsoft.com/en-us/archive/blogs/lukeh/taking-linq-to-objects-to-extremes-a-fully-linqified-raytracer/). The db program is a Bosque implementation of the DB benchmark from SpecJVM 98. The final benchmark is the optimizer pass of the Bosque compiler (written in Bosque).
 
-The Pando collector is implemented in C++, $2.4$kloc at present, and all experiments were run on a system with an AMD Ryzen 9 9950X and 64GB of memory. The system is otherwise unloaded. All runs use a default nursery size of 8mb and a default page size of 4kb.
+The Pando collector is implemented in C++, 2.4kloc at present, and all experiments were run on a system with an AMD Ryzen 9 9950X and 64GB of memory. The system is otherwise unloaded. All runs use a default nursery size of 8mb and a default page size of 4kb.
 | Benchmark | Code Size | Types | AllocCount | AllocMemory (GB) | Max Live Heap (KB) |
 |-----------|-----------|-------|------------|------------------|-------------------|
 | n-body | 193 | 68 | 1,248,474,177 | 69.5 | 5.1 |
@@ -95,6 +94,8 @@ The results show that in all cases the new collector is actually faster than the
 
 We also observe that the pause times are quite consistent across the benchmarks. Thus, as expected from the theoretical analysis, we see that the collector performance is largely invariant of the application workload and primarily a function on the nursery size.
 
+Critically, the temporal behavior is _not_ achieved at the expense of memory overheads The maximum heap size used by the application during the execution of the benchmark, measured as the size of all committed memory pages used in the computation, is under 17MB for every application -- or only slightly more than the nursery size plus the live heap size. 
+
 | Benchmark | Collections | Survival Rate | GC %Time | Heap Size (MB) |
 |-----------|-------------|---------------|----------|----------------|
 | n-body | 758 | 0.03% | 10.5% | 8.6 |
@@ -104,14 +105,13 @@ We also observe that the pause times are quite consistent across the benchmarks.
 
 *The first two columns show the total number of collections performed by the Pando collector during the benchmark run and the average survival rate of the nursery (at 8MB). The next column shows the percentage of total application time spent in GC. The final column shows the max memory used by the application, runtime, and collector as measured by total page usage from the OS.*
 
-Critically, the temporal behavior is _not_ achieved at the expense of memory overheads The maximum heap size used by the application during the execution of the benchmark, measured as the size of all committed memory pages used in the computation, is under 17MB for every application -- or only slightly more than the nursery size plus the live heap size. 
 
 The GC %Time column is the percentage of total application time spent in garbage collection -- this value is larger than is typical for a mature language/GC stack, however our analysis indicates that this is a function of an unoptimized GC codebase and high allocations rates incurred by the baseline implementations for persistent data-structures (lists and strings). Despite this, the values are still all under 12.5% for all benchmarks, indicating that the collector architecture is fundamentally performant. 
 
 These results demonstrate that the constant-factor overheads of the collector match the results in practice. Although our benchmark applications are limited in size the fundamental properties of the collector design, and theoretical guarantees, indicate that these results should hold for larger applications as well, Empirically, we note that the performance of the collector is largely invariant across the workloads and that, even in the face of heavy allocation, the collector does not experience long pauses or is ever out-run by the application.
 
 ### Comparison with State-of-the-Art
-The final experiment is a direct comparison between our new collector and modern state-of-the-art low-latency Java garbage collectors on the same benchmark. The binary-trees benchmark is a small, but widely used benchmark from the Benchmark Shootout, that is highly heap intensive. It is designed explicitly to stress GC algorithms by creating long-lived data structures while simultaneously allocating at a very high rate. For our purposes it is also possible to implement using exactly same code structure in both Bosque and Java allowing for a true 1-1 comparison of Bosque/\gc with an mainstream language and various heavily optimized state-of-the-art GC algorithms.
+The final experiment is a direct comparison between our new collector and modern state-of-the-art low-latency Java garbage collectors on the same benchmark. The binary-trees benchmark is a small, but widely used benchmark from the Benchmark Shootout, that is highly heap intensive. It is designed explicitly to stress GC algorithms by creating long-lived data structures while simultaneously allocating at a very high rate. For our purposes it is also possible to implement using exactly same code structure in both Bosque and Java allowing for a true 1-1 comparison of Bosque gc with an mainstream language and various heavily optimized state-of-the-art GC algorithms.
 
 We compare our Pando GC with with ZGC and Shenandoah (in their default configurations), two modern low-latency garbage collectors for Java. These collectors are heavily optimized for concurrent and parallel collection, as opposed to Pando which is currently a baseline single-threaded implementation which fully pauses the application for the full collection cycle. 
 
@@ -126,9 +126,7 @@ The first row in the table shows the results when the max heap size is unlimited
 
 The second row shows the result of the benchmark with the max heap size limited to 1.5× the live heap size (400MB). As shown in the table, both ZGC and Shenandoah experience severe performance degradation under this configuration with wall-clock time 1.7×-1.9× higher and CPU time spiking by nearly 3.6×. Conversely, Pando experiences no performance degradation under this configuration with both wall-clock and CPU times remaining stable. 
 
-Additionally, both ZGC and Shenandoah experience significant issues with GC pauses and application stalls under this configuration. The collectors report degenerate GC runs and forced synchronous collections as they are unable to keep up with the allocation rate.Conversely, Pando continues to operate normally with increased pauses due to the higher survival rates, and heavy RC workloads, but the fundamental characteristics of the collector prevent the emergence of pathological issues. In fact removing the RC decrement phase from the stop-the-world collection, e.g. by performing these operations concurrently on a background thread, is sufficient to keep the Pando 50% percentile times at 119μs and even the 99% percentile times under 10ms.
+Additionally, both ZGC and Shenandoah experience significant issues with GC pauses and application stalls under this configuration. The collectors report degenerate GC runs and forced synchronous collections as they are unable to keep up with the allocation rate. Conversely, Pando continues to operate normally with increased pauses due to the higher survival rates, and heavy RC workloads, but the fundamental characteristics of the collector prevent the emergence of pathological issues. In fact removing the RC decrement phase from the stop-the-world collection, e.g. by performing these operations concurrently on a background thread, is sufficient to keep the Pando 50% percentile times at 119μs and even the 99% percentile times under 10ms.
 
 These results demonstrate that the Pando collector can provide comparable low-latency performance to state-of-the-art Java garbage collectors while being immune to fundamentally pathological behavior tradeoffs that are unavoidable in existing mainstream languages and runtimes.
 
-
-## Conclusion

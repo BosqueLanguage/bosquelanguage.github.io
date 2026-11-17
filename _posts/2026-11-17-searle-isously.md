@@ -4,11 +4,11 @@ date: 2026-11-17
 layout: post
 ---
 
-Have been thinking about the nature of intelligence and the distinction between intrinsic and extrinsic knowledge in AI systems. In many ways this split is widely (if implicitly) assumed, as a fundamental assumption in using extrinsic knowledge such as a skill, md directive, harness, or workflow, and the belief that one flavor or design is better than another. However, we also see a push toward lighter weight systems that lean on, perhaps the bitter lesson, of just getting a bigger/better model and then relying on the intrinsic knowledge/capabilities of the model itself. 
+In John Searle's [Chinese Room](https://doi.org/10.1017/S0140525X00005756), a person who knows no Chinese sits in a room with a set of rule-books and, by using them, produces answers good enough to pass for a native speaker. The usual argument is about the nature of what in the system *understands* Chinese. I want to ask the more focused question of where does a capability come from -- the agent (intrinsic) or the room (extrinsic)?
 
-Personally, I favor the view that the extrinsic knowledge is a fundamental part of agentic systems. Thus, for practical reasons, I want to develop some quantitative estimate of the contribution of extrinsic vs intrinsic knowledge in these systems. However, this is also a very fundamental question over the nature of intelligence itself, and the interplay between what an agent (AI or even human) "knows" internally versus what it can leverage from the extrinsic knowledge encoded in the system it operates in.
+With AI agents this is not just a thought experiment as skills, md directives, harnesses, and tool specs are bets on the room (extrinsic knowledge). While pushes for bigger models and more RL environments, following the [bitter lesson](http://www.incompleteideas.net/IncIdeas/BitterLesson.html), are bets on the agent (intrinsic knowledge). Both bets are being placed based mainly on intuition with only anecdotal information on how much each component contributes.
 
-The following blog post elaborates a bit on this view and thoughts on a methodology for studying the interplay between intrinsic and extrinsic knowledge in agentic AI systems.
+My personal bet is on the room -- viewing extrinsic knowledge as a critical part of agentic systems. This post lays out a roadmap for this proposition and a methodology for empirically validating it.
 
 # Background
 The [Chinese Room thought experiment](https://doi.org/10.1017/S0140525X00005756), proposed by John Searle, explores the limits of systems and intelligence. In this experiment a translator, who does not know Chinese, is in a room filled with books on translations to/from Chinese. Despite the fact that neither component of the system (the translator or the books) understands Chinese, the system as a whole can still read and answer questions that are given to it in Chinese. Although originally posed as a experiment to explore the relation between mere symbolic manipulation, regardless of how fluent, and true understanding or consciousness, it also contains an interesting question about the nature of intelligence & the question of where the system's capabilities come from -- the agent or the room? 
@@ -108,13 +108,18 @@ api transaction(rcvr: Email, amt: USD, token: Token, note: Option<String>): APIR
 
 In this example Bosque uses an explit event log to enumerate prior actions and allows the API to specify preconditions (similar to [Dogwood](https://aws.amazon.com/blogs/opensource/introducing-dogwood-runtime-verification-for-ai-agents)) over these actions that must be satisfied for this API to be usable. In addition to strong constraints on usage, Bosque also provides explicit (and token efficient) mechanisms for specifying other common API requirements and recommendations including needed environment variables, accessed resources, and reccomended best-practice (as opposed to mandatory) usage patterns.
 
-## Research Outcomes
+## What I Expect to See, and What Would Prove Me Wrong
 
-### Validity and Extent of the Intrinsic and Extrinsic Knowledge Hypothesis:
-The formalization of this hypothesis and a comprehensive empirical evaluation on agent performance including token efficiency, success rates, and policy compliance is the key research question. We expect the formalization and quantification of the ability to use enriched extrinsic knowledge in agentic systems to have a substantial impact on training and construction -- possibly representing a novel ``scaling axis'' for agentic system design.
+The experiment varies one thing: how much the room knows. If the extrinsic knowledge hypothesis matches my intuition then we would expect the following to hold in the results.
 
-### Practical Implications for Agent Tools, Specs, and Context:
-The quantitative results of this study will be of immediate impact and use in the design and implementation of tools, specifications, and frameworks for agentic systems.  Specifically, we plan to measure token efficiency, LLM inference costs, and policy violation rates, in addition to overall agent success rates. Time and cost permitting we also plan to perform ablations over model sizes to understand the limits of extrinsic knowledge offloading.
+### Prediction 1: Richer specs help, and the help survives training
+Success rates should rise and policy violations should fall with each step up in spec expressiveness. As more knowledge is added to the extrinsic store the expectation is the system, overall, becomes more intelligent. A key question is the scale of this effect, possibly ranging from moderate to large enough to possibly represent a novel ``scaling axis'' for agentic system design.
 
-### Policies and Verification over Agent Trajectories:
-The use of the validation/verification focused languages, Lean and Bosque, provide direct insights into the practical applicability and effectiveness of these languages for verification of agent trajectories. This information will provide a roadmap for both the construction of specification/policy languages and the development of verification tools to enable the scalable verification of agent trajectories and ability to provide strong guarantees on agentic behaviors.
+### Prediction 2: Learning to read instructions and spiky intelligence
+As the the extrinsic knowledge store grows, we expect agents to become better at interpreting and following instructions. Ideally, rather than using RL to drive detailed knowledge (and unsafe hacks) for every possible human endeavor, agents will instead learn to simply read and follow directions! A key observation is if, after training on AppWorld tasks, the agents are able to generalize smoothly to out-of-distribution tasks by relying on extrinsic knowledge in the provided specifications.
+
+### Prediction 3: Learning to use validation
+In addition to providing instructions, the specifications also provide formal semantics for the tasks and policies the agents must follow. A key question is if the agents are able to pick up on this and, even if informally, start to perform validation over their own actions and decisions, effectively using the formal semantics to guide and verify their behavior. This capability opens a unique avenue to providing formal tools to the agents themselves and enabling them to introspect on their own behavior to ensure compliance with complex policies autonomously.
+
+### Of course there is the bitter lesson
+Two possible results that would demonstrate the primacy of intrinsic intelligence would be (1) if the difference between spec levels shrinks toward zero as the model gets larger, including in the out-of-distribution domain, then the room is a crutch for weak models (2) if richer specs improve compliance but agents still remain spiky when operating on tasks out of domain, then the agents still must learn per-task and cannot rely on extrinsic knowledge for generalization.
